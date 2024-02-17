@@ -1,123 +1,67 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <string.h>
 
+int foo(const char *whoami) {
+    printf("I am a %s. My pid is: %d my ppid is %d\n",
+           whoami, getpid(), getppid());
+    return 1;
+}
 
-void main(){
-    FILE *archivo;
+int main() {
+    int n = 2; // crear 2 hijos
+    int i = 0;
+    int status = 0;
+    int child_count = 0; // Contador para el número de hijos creados
+    char command[100];
 
-    archivo = fopen("practica1.txt", "w");
+    foo("parent");
 
-    if(archivo == NULL){
-        printf("Error al abrir el archivo");
-        
-    }else {
-        printf("Se creo o se a abierto el archivo practica1.txt");
-        fclose(archivo);
-    }
+    pid_t child_pids[n]; // Arreglo para almacenar los PID de los hijos
 
-    int pid1, pid2, pid3;
-    int count = 10;
-    while(1){
-        int numero_proceso;
-        srand(time(NULL));
+    for (i = 0; i < n; i++) {
+        pid_t pid = fork();
 
-        // Generar un número aleatorio en el rango de 1 a 3
-        numero_proceso = rand() % 3 + 1;        
-        printf("El número aleatorio del proceso seleccionado entre 1 y 3 es: %d\n", numero_proceso);
-        
-        int espera;
-        srand(time(NULL));
-        espera = rand() % 3 + 1;
-        printf("El tiempo de espera es de : %d\n", espera) ;
-        sleep(espera);
-        /*numero_proceso = 1;*/
-        if(numero_proceso== 1){
-            pid1=fork();
-            if(pid1 == 0){
-                printf("child[1] --> pid = %d and ppid = %d\n",getpid(), getppid());
-                char *arg_Ptr[2];
-                arg_Ptr[0] = "practica1.txt";
-                arg_Ptr[1] = NULL; // El ultimo indice de argv siempre debe de ser NULL
+        if (pid == 0) {
+            foo("child");
+            char pid_str[20]; // Suficientemente grande para contener el PID convertido a cadena
+            snprintf(pid_str, sizeof(pid_str), "%d", getpid()); // Convierte el PID a cadena
+            char *arg_Ptr[3];
+            arg_Ptr[0] = pid_str;
+            arg_Ptr[1] = "practica1.txt";
+            arg_Ptr[2] = NULL;
 
-                /*Se ejecuta el ejecutable del proceso hijo*/
-                execv("/home/sebbbasdl/Documentos/SO2_201906085/Practica 1/child1.bin", arg_Ptr);
-            }else{
-                printf("Soy el proceso padre\n");
+            execv("/home/sebbbasdl/Documentos/SO2_201906085/Practica 1/child1.bin", arg_Ptr);
 
-                /*Se espera a que el proceso hijo termine*/
-                int status;
-                wait(&status);
+            exit(EXIT_SUCCESS);
+        } else if (pid > 0) {
+            // Proceso padre
+            
+            child_pids[child_count] = pid; // Almacena el PID del hijo en el arreglo
+            child_count++; // Incrementa el contador de hijos creados
+            
 
-                /*Se imprime el codigo de salida del proceso hijo*/
-                if(WIFEXITED(status)){
-                    printf("\nEl proceso hijo termino con estado: %d\n", WIFEXITED(status));
-                } else {
-                    printf("Ocurrio un error al terminar el proceso hijo");
+            if (child_count >= n) {
+                printf("Soy los hijosss con PID: %d %s %d\n", child_pids[0],"   " ,child_pids[1]);
+                sprintf(command, "%s %d %d %s", "sudo stap trace.stp ", child_pids[0], child_pids[1], " > calls.log");
+                system(command);
+                // Espera a que todos los hijos sean creados antes de continuar
+                for (int j = 0; j < n; j++) {
+                    waitpid(child_pids[j], &status, 0); // Espera específicamente al hijo con PID child_pids[j]
                 }
-
-                printf("Terminando proceso padre\n");
+                
+                break; // Sal del bucle for después de que todos los hijos sean creados
             }
-
-        }else if (numero_proceso== 2) {
-            pid2 = fork();
-            if(pid2 == 0){
-                printf("child[2] --> pid = %d and ppid = %d\n",getpid(), getppid());
-                char *arg_Ptr[2];
-                arg_Ptr[0] = "practica1.txt";
-                arg_Ptr[1] = NULL; // El ultimo indice de argv siempre debe de ser NULL
-
-                /*Se ejecuta el ejecutable del proceso hijo*/
-                execv("/home/sebbbasdl/Documentos/SO2_201906085/Practica 1/child2.bin", arg_Ptr);
-            }else{
-                printf("Soy el proceso padre\n");
-
-                /*Se espera a que el proceso hijo termine*/
-                int status;
-                wait(&status);
-
-                /*Se imprime el codigo de salida del proceso hijo*/
-                if(WIFEXITED(status)){
-                    printf("\nEl proceso hijo termino con estado: %d\n", WIFEXITED(status));
-                } else {
-                    printf("Ocurrio un error al terminar el proceso hijo");
-                }
-
-                printf("Terminando proceso padre\n");
-            }
-        }else if (numero_proceso== 3) {
-            pid3 = fork();
-            if(pid3 == 0){
-                printf("child[3] --> pid = %d and ppid = %d\n",getpid(), getppid());
-                char *arg_Ptr[2];
-                arg_Ptr[0] = "practica1.txt";
-                arg_Ptr[1] = NULL; // El ultimo indice de argv siempre debe de ser NULL
-
-                /*Se ejecuta el ejecutable del proceso hijo*/
-                execv("/home/sebbbasdl/Documentos/SO2_201906085/Practica 1/child3.bin", arg_Ptr);
-            }else{
-                printf("Soy el proceso padre\n");
-
-                /*Se espera a que el proceso hijo termine*/
-                int status;
-                wait(&status);
-
-                /*Se imprime el codigo de salida del proceso hijo*/
-                if(WIFEXITED(status)){
-                    printf("\nEl proceso hijo termino con estado: %d\n", WIFEXITED(status));
-                } else {
-                    printf("Ocurrio un error al terminar el proceso hijo");
-                }
-
-                printf("Terminando proceso padre\n");
-            }
+        } else {
+            // Error al hacer fork
+            perror("fork");
+            exit(EXIT_FAILURE);
         }
-
     }
 
-
+    return 0;
 }
