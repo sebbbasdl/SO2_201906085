@@ -10,9 +10,9 @@
 
 **201906085**
 
-**Práctica 1 (Llamadas a sistema)**
 
-**Manual Técnico**
+
+# Práctica 1 (Llamadas a sistema) - Manual Tecnico
 
 ---
 
