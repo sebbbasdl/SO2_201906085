@@ -5,12 +5,40 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <string.h>
+#include <signal.h>
 
-int foo(const char *whoami) {
-    printf("I am a %s. My pid is: %d my ppid is %d\n",
-           whoami, getpid(), getppid());
-    return 1;
+int contar_palabra(const char *archivo, const char *palabra) {
+    FILE *file;
+    char line[256];
+    int contador = 0;
+
+    file = fopen(archivo, "r");
+    if (file == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return -1;
+    }
+
+    while (fgets(line, sizeof(line), file)) {
+        if (strstr(line, palabra) != NULL) {
+            contador++;
+        }
+    }
+
+    fclose(file);
+
+    return contador;
 }
+
+// Función de manejo de la señal SIGINT
+void sigint_handler(int signal) {
+    printf("Se recibió la señal SIGINT (Ctrl+C).\n");
+    const char *archivo = "syscalls.log";
+    printf("Cantidad de procesos: %d\n", contar_palabra(archivo, "proceso"));
+    printf("Read: %d, Write: %d\n", contar_palabra(archivo, "read"),contar_palabra(archivo, "write"));
+    exit(0); // Por ejemplo, puedes salir del programa
+}
+
+
 
 int main() {
     int n = 2; // crear 2 hijos
@@ -19,7 +47,19 @@ int main() {
     int child_count = 0; // Contador para el número de hijos creados
     char command[100];
 
-    foo("parent");
+    // Establecer el manejador de señales para SIGINT
+    if (signal(SIGINT, sigint_handler) == SIG_ERR) {
+        perror("Error al establecer el manejador de señales");
+        return 1;
+    }
+    // Crear o vaciar el archivo practica1.txt
+    FILE *file = fopen("practica1.txt", "w");
+    if (file == NULL) {
+        perror("Error al abrir el archivo practica1.txt");
+        return 1;
+    }
+    fclose(file);
+    
 
     pid_t child_pids[n]; // Arreglo para almacenar los PID de los hijos
 
@@ -27,7 +67,6 @@ int main() {
         pid_t pid = fork();
 
         if (pid == 0) {
-            foo("child");
             char pid_str[20]; // Suficientemente grande para contener el PID convertido a cadena
             snprintf(pid_str, sizeof(pid_str), "%d", getpid()); // Convierte el PID a cadena
             char *arg_Ptr[3];
@@ -46,8 +85,8 @@ int main() {
             
 
             if (child_count >= n) {
-                printf("Soy los hijosss con PID: %d %s %d\n", child_pids[0],"   " ,child_pids[1]);
-                sprintf(command, "%s %d %d %s", "sudo stap trace.stp ", child_pids[0], child_pids[1], " > calls.log");
+                //printf("Soy los hijosss con PID: %d %s %d\n", child_pids[0],"   " ,child_pids[1]);
+                sprintf(command, "%s %d %d %s", "sudo stap trace.stp ", child_pids[0], child_pids[1], " > syscalls.log");
                 system(command);
                 // Espera a que todos los hijos sean creados antes de continuar
                 for (int j = 0; j < n; j++) {

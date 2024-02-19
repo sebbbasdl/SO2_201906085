@@ -2,12 +2,12 @@
 
 probe syscall.read {
     if(pid() == $1 || pid() == $2){
-        printf("%s(%d) %s\n",execname(), pid(), name)
+        printf("proceso %d : %s ( %s )\n", pid(), name, tz_ctime(gettimeofday_s()))
     }
 }
 
 probe syscall.write {
     if(pid() == $1 || pid() == $2){
-        printf("%s(%d) %s\n",execname(), pid(), name)
+        printf("proceso %d : %s ( %s )\n", pid(), name, tz_ctime(gettimeofday_s()))
     }
 }
