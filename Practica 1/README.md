@@ -1,4 +1,4 @@
-**Universidad De San Carlos De Guatemala**
+﻿**Universidad De San Carlos De Guatemala**
 **Facultad De Ingeniería**
 **Escuela De Ciencias Y Sistemas**
 **Sistemas Operativos 2 Sección A**
@@ -50,3 +50,4 @@ El programa puede ser compilado y ejecutado en un entorno Unix/Linux utilizando 
 **6. Conclusiones**
 
 Esta práctica proporciona una comprensión práctica de conceptos fundamentales de sistemas operativos, como la creación de procesos, ejecución de programas externos, monitoreo de llamadas al sistema y manejo de señales del sistema. Estos conceptos son cruciales para el desarrollo de aplicaciones y sistemas robustos y eficientes en entornos operativos.
+
