@@ -1,8 +1,13 @@
 ﻿**Universidad De San Carlos De Guatemala**
+ 
 **Facultad De Ingeniería**
+
 **Escuela De Ciencias Y Sistemas**
+
 **Sistemas Operativos 2 Sección A**
+
 **Sebastian Alejandro de Leon Tenaz**
+
 **201906085**
 
 **Práctica 1 (Llamadas a sistema)**
