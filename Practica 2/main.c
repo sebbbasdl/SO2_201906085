@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #define MAX_CHAR_PER_LINE 150
 #define MAX_FIELD_SIZE 50
@@ -20,6 +21,7 @@ struct Transacciones {
     float monto; 
 };
 
+
 bool existeCuenta(int num_cuenta, struct Usuario usuarios[MAX_RECORDS], int num_usuarios, int line_number) {
     for (int i = 0; i < num_usuarios; i++) {
         if (num_cuenta == usuarios[i].no_cuenta) {
@@ -30,7 +32,7 @@ bool existeCuenta(int num_cuenta, struct Usuario usuarios[MAX_RECORDS], int num_
     return false;
 }
 
-bool validaciones(char linea[MAX_CHAR_PER_LINE], struct Usuario usuarios[MAX_RECORDS], int num_usuarios, struct Transacciones transacciones[MAX_RECORDS], int num_transacciones, int line_number) {
+float validaciones(char linea[MAX_CHAR_PER_LINE], struct Usuario usuarios[MAX_RECORDS], int num_usuarios, struct Transacciones transacciones[MAX_RECORDS], int num_transacciones, int line_number) {
     char *token;
     //operacion;;
     
@@ -43,45 +45,54 @@ bool validaciones(char linea[MAX_CHAR_PER_LINE], struct Usuario usuarios[MAX_REC
     
     if (token == NULL) {
         printf("Error en línea %d: No se pudo leer la cuenta1.\n", line_number);
-        return false;
+        return -999;
     }
     int cuenta1 = atoi(token);
+    
     if (!existeCuenta(cuenta1, usuarios, num_usuarios, line_number)) {
-        return false;
+        
+        return -999;
     }
     transacciones[num_transacciones].cuenta1=cuenta1;
 
     token = strtok(NULL, ",");
     if (token == NULL) {
         printf("Error en línea %d: No se pudo leer la cuenta2.\n", line_number);
-        return false;
+        return -999;
     }
     int cuenta2 = atoi(token);
     if(ope==2 || ope==1 ){
         
         if(cuenta2!=0){
             printf("Error en línea %d: En la operación (%d) el parámetro cuenta2 debe ser 0.\n", line_number, ope);
-            return false;
+            return -999;
         }
 
-    }else if (ope==3 && !existeCuenta(cuenta1, usuarios, num_usuarios, line_number)) {
-        return false;
+    }else if (ope==3 && !existeCuenta(cuenta2, usuarios, num_usuarios, line_number)) {
+        return -999;
     }
     transacciones[num_transacciones].cuenta2=cuenta2;
 
     token = strtok(NULL, ",");
     if (token == NULL) {
         printf("Error en línea %d: No se pudo leer el monto.\n", line_number);
-        return false;
+        return -999;
     }
-    float monto = atof(token);
+    char *endptr;
+    float monto = strtof(token, &endptr);
+    if (*endptr != '\0' && !isspace(*endptr)) {
+        printf("Error en línea %d: El monto para el usuario %s no es un número válido.\n", line_number, usuarios[num_usuarios].nombre);
+        return -999;
+    }
+
+    // Verificación de saldo negativo
     if (monto < 0) {
-        printf("Error en línea %d: El saldo para la transacción %d entre la cuenta1 %d y la cuenta2 %d es negativo.\n", line_number, transacciones[num_transacciones].operacion, transacciones[num_transacciones].cuenta1, transacciones[num_transacciones].cuenta2);
-        return false;
+        printf("Error en línea %d: El monto para el usuario %s es negativo.\n", line_number, usuarios[num_usuarios].nombre);
+        return -999;
     }
     transacciones[num_transacciones].monto=monto;
 
-    return true;
+    return monto;
 }
 
 void transacciones(struct Usuario usuarios[MAX_RECORDS], int num_usuarios) {
@@ -118,12 +129,71 @@ void transacciones(struct Usuario usuarios[MAX_RECORDS], int num_usuarios) {
         }
         int operacion = atoi(token);
         
-        if (operacion == 1 && validaciones(aux_linea,usuarios,num_usuarios,transacciones,num_transacciones, line_number)==true) {
-            
-            
-        } else if (operacion == 2 && validaciones(aux_linea,usuarios,num_usuarios,transacciones,num_transacciones,line_number)==true) {
-            
-        } else if (operacion == 3 && validaciones(aux_linea,usuarios,num_usuarios,transacciones,num_transacciones,line_number)==true) {
+        
+        if (operacion == 1 ) {
+            float monto=validaciones(aux_linea,usuarios,num_usuarios,transacciones,num_transacciones, line_number);
+            if(monto != -999){
+                
+                for (int i = 0; i < num_usuarios; i++){
+                    if(usuarios[i].no_cuenta== transacciones[num_transacciones].cuenta1){
+                        usuarios[i].saldo += monto;
+                    }
+                }
+                
+            }
+
+        } else if (operacion == 2) {
+            float monto=validaciones(aux_linea,usuarios,num_usuarios,transacciones,num_transacciones, line_number);
+            if(monto != -999){
+                
+                for (int i = 0; i < num_usuarios; i++){
+                    if(usuarios[i].no_cuenta== transacciones[num_transacciones].cuenta1){
+                        int saldo_anterior = usuarios[i].saldo;
+                        usuarios[i].saldo = usuarios[i].saldo - monto;
+                        if(usuarios[i].saldo <0){
+                            usuarios[i].saldo = saldo_anterior ;
+                            printf("Error en linea %d: No se puede retirar esa cantidad ya que es mayor a su saldo.\n", line_number);
+                            break;
+                        }
+                    }
+                }
+                
+            }
+
+        } else if (operacion == 3) {
+            float monto=validaciones(aux_linea,usuarios,num_usuarios,transacciones,num_transacciones, line_number);
+            if(monto != -999){
+                int pos_c1 ;
+                int pos_c2 ;
+
+                for (int i = 0; i < num_usuarios; i++){
+                    
+                    if(usuarios[i].no_cuenta== transacciones[num_transacciones].cuenta1){
+                        pos_c1=i;
+                    }
+                    if(usuarios[i].no_cuenta== transacciones[num_transacciones].cuenta2){
+                        pos_c2=i;
+                    }
+                }
+
+                if(usuarios[pos_c1].no_cuenta==usuarios[pos_c2].no_cuenta){
+                    printf("Error en linea %d: No se puede transferir ya que cuenta 1 y cuenta 2 son el mismo numero de cuenta.\n", line_number);
+                    continue;
+                }
+
+                int saldo_anterio_c1 = usuarios[pos_c1].saldo;
+                usuarios[pos_c1].saldo = usuarios[pos_c1].saldo - monto;
+
+                if(usuarios[pos_c1].saldo<0){
+                    usuarios[pos_c1].saldo=saldo_anterio_c1;
+                    printf("Error en linea %d: No se puede transferir esa cantidad ya que es mayor a saldo.\n", line_number);
+                    continue;
+                }else{
+                    usuarios[pos_c2].saldo+= monto;
+                }
+                
+
+            }
             
         } else {
             printf("Error en linea %d: Operacion no valida.\n", line_number);
@@ -187,11 +257,20 @@ int main() {
             printf("Error en línea %d: No se pudo leer el saldo.\n", line_number);
             continue;
         }
-        float saldo = atof(token);
+
+        char *endptr;
+        float saldo = strtof(token, &endptr);
+        if (*endptr != '\0' && !isspace(*endptr)) {
+            printf("Error en línea %d: El saldo para el usuario %s no es un número válido.\n", line_number, usuarios[num_usuarios].nombre);
+            continue;
+        }
+
+        // Verificación de saldo negativo
         if (saldo < 0) {
             printf("Error en línea %d: El saldo para el usuario %s es negativo.\n", line_number, usuarios[num_usuarios].nombre);
             continue;
         }
+
         usuarios[num_usuarios].saldo = saldo;
 
         num_usuarios++;
@@ -200,13 +279,14 @@ int main() {
 
     fclose(archivo);
 
-    printf("Usuarios leídos:\n");
+    
+
+    printf("\n--------EMPIEZA TRANSACCIONES--------\n");
+    transacciones(usuarios, num_usuarios);
+    /*printf("Usuarios leídos:\n");
     for (int i = 0; i < num_usuarios; i++) {
         printf("Número de cuenta: %d, Nombre: %s, Saldo: %.2f\n", usuarios[i].no_cuenta, usuarios[i].nombre, usuarios[i].saldo);
-    }
-
-    printf("--------EMPIEZA TRANSACCIONES--------\n");
-    transacciones(usuarios, num_usuarios);
+    }*/
 
     return 0;
 }
