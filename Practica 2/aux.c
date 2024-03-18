@@ -30,6 +30,7 @@ typedef struct
     pthread_mutex_t m;
     FILE *f;
     int *curr_line;
+    char *errors; // Cadena para almacenar los errores
 } Mutex;
 
 typedef struct {
@@ -38,6 +39,7 @@ typedef struct {
     short thread_n;
     int* counter;
     int transactions_loaded;
+    char *errors; // Cadena para almacenar los errores
 } ThreadArgs;
 
 bool existeCuenta(int num_cuenta, struct Usuario usuarios[MAX_RECORDS], int num_usuarios, int line_number)
@@ -138,6 +140,7 @@ void *load_users(void *arguments)
     int *counter = thread_args->counter;
     int *users_loaded = &(thread_args->transactions_loaded);
     struct Usuario *usuarios = thread_args->usuarios; 
+    char *errors = thread_args->errors; // Cadena para almacenar los errores
 
     // Ignorar la primera línea
     if (*current_line == 0)
@@ -175,7 +178,7 @@ void *load_users(void *arguments)
         }
         if (cuenta_existente)
         {
-            printf("Error en línea %d: El número de cuenta %d ya existe en el sistema.\n", line_number, num_cuenta);
+            sprintf(errors + strlen(errors), "Error en línea %d: El número de cuenta %d ya existe en el sistema.\n", line_number, num_cuenta);
             continue;
         }
         usuarios[num_usuarios].no_cuenta = num_cuenta;
@@ -183,7 +186,7 @@ void *load_users(void *arguments)
         token = strtok(NULL, ",");
         if (token == NULL)
         {
-            printf("Error en línea %d: No se pudo leer el nombre.\n", line_number);
+            sprintf(errors + strlen(errors), "Error en línea %d: No se pudo leer el nombre.\n", line_number);
             continue;
         }
         strcpy(usuarios[num_usuarios].nombre, token);
@@ -191,7 +194,7 @@ void *load_users(void *arguments)
         token = strtok(NULL, ",");
         if (token == NULL)
         {
-            printf("Error en línea %d: No se pudo leer el saldo.\n", line_number);
+            sprintf(errors + strlen(errors), "Error en línea %d: No se pudo leer el saldo.\n", line_number);
             continue;
         }
 
@@ -199,14 +202,14 @@ void *load_users(void *arguments)
         float saldo = strtof(token, &endptr);
         if (*endptr != '\0' && !isspace(*endptr))
         {
-            printf("Error en línea %d: El saldo para el usuario %s no es un número válido.\n", line_number, usuarios[num_usuarios].nombre);
+            sprintf(errors + strlen(errors), "Error en línea %d: El saldo para el usuario %s no es un número válido.\n", line_number, usuarios[num_usuarios].nombre);
             continue;
         }
 
         // Verificación de saldo negativo
         if (saldo < 0)
         {
-            printf("Error en línea %d: El saldo para el usuario %s es negativo.\n", line_number, usuarios[num_usuarios].nombre);
+            sprintf(errors + strlen(errors), "Error en línea %d: El saldo para el usuario %s es negativo.\n", line_number, usuarios[num_usuarios].nombre);
             continue;
         }
 
@@ -235,6 +238,7 @@ void *load_transactions(void *arguments)
     struct Transaccion transacciones[MAX_RECORDS];
     int num_transacciones = 0;
     struct Usuario *usuarios = thread_args->usuarios;
+    char *errors = thread_args->errors; // Cadena para almacenar los errores
 
     // Ignorar la primera línea
     if (*current_line == 0)
@@ -274,7 +278,7 @@ void *load_transactions(void *arguments)
         
         if (token == NULL)
         {
-            printf("Error en línea %d: No se pudo leer la operación.\n", line_number);
+            sprintf(errors + strlen(errors), "Error en línea %d: No se pudo leer la operación.\n", line_number);
             continue;
         }
         
@@ -306,7 +310,7 @@ void *load_transactions(void *arguments)
                             if (usuarios[i].saldo < 0)
                             {
                                 usuarios[i].saldo = saldo_anterior;
-                                printf("Error en línea %d: No se puede retirar esa cantidad ya que es mayor a su saldo.\n", line_number);
+                                sprintf(errors + strlen(errors), "Error en línea %d: No se puede retirar esa cantidad ya que es mayor a su saldo.\n", line_number);
                                 break;
                             }
                         }
@@ -331,7 +335,7 @@ void *load_transactions(void *arguments)
 
                     if (usuarios[pos_c1].no_cuenta == usuarios[pos_c2].no_cuenta)
                     {
-                        printf("Error en línea %d: No se puede transferir ya que cuenta 1 y cuenta 2 son el mismo número de cuenta.\n", line_number);
+                        sprintf(errors + strlen(errors), "Error en línea %d: No se puede transferir ya que cuenta 1 y cuenta 2 son el mismo número de cuenta.\n", line_number);
                         continue;
                     }
 
@@ -341,7 +345,7 @@ void *load_transactions(void *arguments)
                     if (usuarios[pos_c1].saldo < 0)
                     {
                         usuarios[pos_c1].saldo = saldo_anterior_c1;
-                        printf("Error en línea %d: No se puede transferir esa cantidad ya que es mayor a saldo.\n", line_number);
+                        sprintf(errors + strlen(errors), "Error en línea %d: No se puede transferir esa cantidad ya que es mayor a saldo.\n", line_number);
                         continue;
                     }
                     else
@@ -354,7 +358,7 @@ void *load_transactions(void *arguments)
         }
         else
         {
-            printf("Error en línea %d: Operación no válida.\n", line_number);
+            sprintf(errors + strlen(errors), "Error en línea %d: Operación no válida.\n", line_number);
         }
     }
     *transactions_loaded = num_transacciones; // Guardar el número de transacciones cargados por este hilo
@@ -390,14 +394,16 @@ int main()
     int counter_usuarios = 0;
     int total_users_loaded = 0;                       // Contador total de usuarios cargados
     struct Usuario usuarios[MAX_RECORDS];             // Arreglo de usuarios
+    char usuarios_errors[5000] = ""; // Cadena para almacenar los errores de usuarios
 
     for (int i = 0; i < 3; i++)
     {
         arguments_usuarios[i].mutex = &usuarios_mutex;
         arguments_usuarios[i].thread_n = i;
         arguments_usuarios[i].counter = &counter_usuarios;
-        arguments_usuarios[i].transactions_loaded = total_users_loaded; // Inicializar el contador de usuarios cargados por este hilo
+        arguments_usuarios[i].transactions_loaded = 0; // Inicializar el contador de usuarios cargados por este hilo
         arguments_usuarios[i].usuarios = usuarios;     // Pasar el arreglo de usuarios como argumento
+        arguments_usuarios[i].errors = usuarios_errors; // Pasar la cadena de errores como argumento
         pthread_create(&threads[i], NULL, load_users, (void *)&arguments_usuarios[i]);
     }
 
@@ -410,6 +416,30 @@ int main()
     pthread_mutex_destroy(&usuarios_mutex.m);          // Destruir mutex para usuarios
 
     printf("Total de usuarios cargados: %d\n", total_users_loaded);
+    time_t current_time;
+    char report_filename[50];
+    struct tm *time_info;
+    time(&current_time);
+    time_info = localtime(&current_time);
+    strftime(report_filename, sizeof(report_filename), "carga_%Y_%m_%d-%H_%M_%S.log", time_info);
+
+    FILE *report_file = fopen(report_filename, "w");
+    if (report_file == NULL) {
+        perror("Error al crear el archivo de reporte");
+        return 1;
+    }
+
+    fprintf(report_file, "Reporte de carga de usuarios generado el %s\n\n", report_filename);
+    fprintf(report_file, "Desglose de usuarios cargados por cada hilo:\n");
+    for (int i = 0; i < 3; i++) {
+        fprintf(report_file, "Hilo %d: %d usuarios\n", i + 1, arguments_usuarios[i].transactions_loaded);
+    }
+    fprintf(report_file, "\nTotal de usuarios cargados: %d\n", total_users_loaded);
+    fprintf(report_file, "Errores durante la carga de usuarios:\n%s\n", usuarios_errors);
+
+    fclose(report_file);
+
+    printf("Reporte de carga generado correctamente en %s.\n", report_filename);
 
     
 
@@ -419,6 +449,7 @@ int main()
     ThreadArgs arguments_transacciones[4];             // Argumentos para los hilos de carga de transacciones
     int counter_transacciones = 0;
     int total_transactions_loaded = 0;                 // Contador total de transacciones cargadas
+    char transactions_errors[5000] = ""; // Cadena para almacenar los errores de transacciones
     
     for (int i = 0; i < 4; i++)
     {
@@ -426,19 +457,40 @@ int main()
         arguments_transacciones[i].thread_n = i;
         arguments_transacciones[i].counter = &counter_transacciones;
         arguments_transacciones[i].transactions_loaded = total_transactions_loaded; // Inicializar el contador de transacciones cargadas por este hilo
-        arguments_transacciones[i].usuarios = usuarios;    // Pasar el arreglo de usuarios como argumento
+        arguments_transacciones[i].usuarios = usuarios;     // Pasar el arreglo de usuarios como argumento
+        arguments_transacciones[i].errors = transactions_errors; // Pasar la cadena de errores como argumento
         pthread_create(&threads_transacciones[i], NULL, load_transactions, (void *)&arguments_transacciones[i]);
     }
 
     for (int i = 0; i < 4; i++)
     {
-        pthread_join(threads_transacciones[i], NULL);         // Esperar a que los hilos de transacciones terminen
+        pthread_join(threads_transacciones[i], NULL);                // Esperar a que los hilos de transacciones terminen
         total_transactions_loaded += arguments_transacciones[i].transactions_loaded; // Sumar al total de transacciones cargadas
     }
 
-    pthread_mutex_destroy(&transacciones_mutex.m); // Destruir mutex para transacciones
+    pthread_mutex_destroy(&transacciones_mutex.m);          // Destruir mutex para transacciones
 
     printf("Total de transacciones cargadas: %d\n", total_transactions_loaded);
+    char transactions_report_filename[50];
+    strftime(transactions_report_filename, sizeof(transactions_report_filename), "transacciones_%Y_%m_%d-%H_%M_%S.log", time_info);
+
+    FILE *transactions_report_file = fopen(transactions_report_filename, "w");
+    if (transactions_report_file == NULL) {
+        perror("Error al crear el archivo de reporte de transacciones");
+        return 1;
+    }
+
+    fprintf(transactions_report_file, "Reporte de carga de transacciones generado el %s\n\n", transactions_report_filename);
+    fprintf(transactions_report_file, "Desglose de transacciones cargadas por cada hilo:\n");
+    for (int i = 0; i < 4; i++) {
+        fprintf(transactions_report_file, "Hilo %d: %d transacciones\n", i + 1, arguments_transacciones[i].transactions_loaded);
+    }
+    fprintf(transactions_report_file, "\nTotal de transacciones cargadas: %d\n", total_transactions_loaded);
+    fprintf(transactions_report_file, "Errores durante la carga de transacciones:\n%s\n", transactions_errors);
+
+    fclose(transactions_report_file);
+
+    printf("Reporte de carga de transacciones generado correctamente en %s.\n", transactions_report_filename);
 
     fclose(usuarios_file);
     fclose(transacciones_file);
