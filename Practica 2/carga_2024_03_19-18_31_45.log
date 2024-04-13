@@ -1,0 +1,19 @@
+Reporte de carga de usuarios generado el carga_2024_03_19-18_31_45.log
+
+Desglose de usuarios cargados por cada hilo:
+Hilo 1: 0 usuarios
+Hilo 2: 0 usuarios
+Hilo 3: 91 usuarios
+
+Total de usuarios cargados: 91
+Errores durante la carga de usuarios:
+Error en línea 2: El saldo para el usuario Jorey Pittet no es un número válido.
+Error en línea 14: El saldo para el usuario Elianora Wittering es negativo.
+Error en línea 20: El saldo para el usuario Tisha Frediani no es un número válido.
+Error en línea 40: El número de cuenta 2019 ya existe en el sistema.
+Error en línea 42: El número de cuenta 9114 ya existe en el sistema.
+Error en línea 53: El saldo para el usuario Merilee Cow es negativo.
+Error en línea 67: El número de cuenta 9112 ya existe en el sistema.
+Error en línea 89: El saldo para el usuario Giusto Levison no es un número válido.
+Error en línea 101: El saldo para el usuario Alayne Oke es negativo.
+

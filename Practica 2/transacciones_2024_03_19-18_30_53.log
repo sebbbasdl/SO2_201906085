@@ -1,0 +1,70 @@
+Reporte de carga de transacciones generado el transacciones_2024_03_19-18_30_53.log
+
+Desglose de transacciones cargadas por cada hilo:
+Hilo 1: 0 transacciones
+Hilo 2: 0 transacciones
+Hilo 3: 142 transacciones
+Hilo 4: 0 transacciones
+
+Total de transacciones cargadas: 142
+Errores durante la carga de transacciones:
+Error en línea 5: No existe cuenta.
+Error en línea 6: Operación no válida.
+Error en línea 10: No existe cuenta.
+Error en línea 11: No existe cuenta.
+Error en línea 16: No existe cuenta.
+Error en línea 23: No existe cuenta.
+Error en línea 24: El monto es negativo
+Error en línea 28: No existe cuenta.
+Error en línea 29: No existe cuenta.
+Error en línea 30: No existe cuenta.
+Error en línea 32: No existe cuenta.
+Error en línea 35: No existe cuenta.
+Error en línea 36: No existe cuenta.
+Error en línea 44: No existe cuenta.
+Error en línea 46: No existe cuenta.
+Error en línea 47: No existe cuenta.
+Error en línea 49: Operación no válida.
+Error en línea 56: No se puede retirar esa cantidad ya que es mayor a su saldo.
+Error en línea 61: No existe cuenta.
+Error en línea 66: No existe cuenta.
+Error en línea 69: No existe cuenta.
+Error en línea 72: No existe cuenta.
+Error en línea 78: No existe cuenta.
+Error en línea 81: No existe cuenta.
+Error en línea 84: No existe cuenta.
+Error en línea 85: No existe cuenta.
+Error en línea 89: No existe cuenta.
+Error en línea 92: No existe cuenta.
+Error en línea 93: No se puede transferir esa cantidad ya que es mayor a saldo.
+Error en línea 94: No existe cuenta.
+Error en línea 97: El monto es negativo
+Error en línea 100: No existe cuenta.
+Error en línea 102: Operación no válida.
+Error en línea 107: No existe cuenta.
+Error en línea 114: No existe cuenta.
+Error en línea 117: No existe cuenta.
+Error en línea 122: No existe cuenta.
+Error en línea 125: El monto es negativo
+Error en línea 126: No existe cuenta.
+Error en línea 129: No existe cuenta.
+Error en línea 130: No existe cuenta.
+Error en línea 131: No existe cuenta.
+Error en línea 132: No existe cuenta.
+Error en línea 138: No existe cuenta.
+Error en línea 152: No existe cuenta.
+Error en línea 153: No existe cuenta.
+Error en línea 154: No existe cuenta.
+Error en línea 157: No existe cuenta.
+Error en línea 167: No existe cuenta.
+Error en línea 171: No existe cuenta.
+Error en línea 187: No existe cuenta.
+Error en línea 188: No existe cuenta.
+Error en línea 193: El monto es negativo
+Error en línea 195: No existe cuenta.
+Error en línea 197: No existe cuenta.
+Error en línea 198: No existe cuenta.
+Error en línea 200: Operación no válida.
+Error en línea 201: No existe cuenta.
+Error en línea 62: No existe cuenta.
+

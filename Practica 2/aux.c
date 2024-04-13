@@ -42,6 +42,101 @@ typedef struct {
     char *errors; // Cadena para almacenar los errores
 } ThreadArgs;
 
+
+void deposito(struct Usuario usuarios[MAX_RECORDS], int num_usuarios) {
+    int cuenta;
+    float monto;
+    printf("\nIngrese el número de cuenta para el depósito: ");
+    scanf("%d", &cuenta);
+    printf("Ingrese el monto a depositar: ");
+    scanf("%f", &monto);
+
+    for (int i = 0; i < num_usuarios; i++) {
+        if (usuarios[i].no_cuenta == cuenta) {
+            usuarios[i].saldo += monto;
+            printf("Depósito realizado con éxito. Nuevo saldo para la cuenta %d: %.2f\n", cuenta, usuarios[i].saldo);
+            return;
+        }
+    }
+    printf("La cuenta ingresada no fue encontrada.\n");
+}
+
+void retiro(struct Usuario usuarios[MAX_RECORDS], int num_usuarios) {
+    int cuenta;
+    float monto;
+    printf("\nIngrese el número de cuenta para el retiro: ");
+    scanf("%d", &cuenta);
+    printf("Ingrese el monto a retirar: ");
+    scanf("%f", &monto);
+
+    for (int i = 0; i < num_usuarios; i++) {
+        if (usuarios[i].no_cuenta == cuenta) {
+            if (usuarios[i].saldo >= monto) {
+                usuarios[i].saldo -= monto;
+                printf("Retiro realizado con éxito. Nuevo saldo para la cuenta %d: %.2f\n", cuenta, usuarios[i].saldo);
+            } else {
+                printf("Saldo insuficiente para realizar el retiro.\n");
+            }
+            return;
+        }
+    }
+    printf("La cuenta ingresada no fue encontrada.\n");
+}
+
+void transferencia(struct Usuario usuarios[MAX_RECORDS], int num_usuarios) {
+    int cuenta_origen, cuenta_destino;
+    float monto;
+    printf("\nIngrese el número de cuenta de origen: ");
+    scanf("%d", &cuenta_origen);
+    printf("Ingrese el número de cuenta de destino: ");
+    scanf("%d", &cuenta_destino);
+    printf("Ingrese el monto a transferir: ");
+    scanf("%f", &monto);
+
+    int encontrado_origen = 0, encontrado_destino = 0;
+    for (int i = 0; i < num_usuarios; i++) {
+        if (usuarios[i].no_cuenta == cuenta_origen) {
+            encontrado_origen = 1;
+            if (usuarios[i].saldo >= monto) {
+                usuarios[i].saldo -= monto;
+                for (int j = 0; j < num_usuarios; j++) {
+                    if (usuarios[j].no_cuenta == cuenta_destino) {
+                        encontrado_destino = 1;
+                        usuarios[j].saldo += monto;
+                        printf("Transferencia realizada con éxito de la cuenta %d a la cuenta %d\n", cuenta_origen, cuenta_destino);
+                        return;
+                    }
+                }
+            } else {
+                printf("Saldo insuficiente en la cuenta de origen.\n");
+                return;
+            }
+        }
+    }
+    if (!encontrado_origen) {
+        printf("La cuenta de origen ingresada no fue encontrada.\n");
+    }
+    if (!encontrado_destino) {
+        printf("La cuenta de destino ingresada no fue encontrada.\n");
+    }
+}
+
+void consultar_cuenta(struct Usuario usuarios[MAX_RECORDS], int num_usuarios) {
+    int cuenta;
+    printf("\nIngrese el número de cuenta a consultar: ");
+    scanf("%d", &cuenta);
+
+    for (int i = 0; i < num_usuarios; i++) {
+        if (usuarios[i].no_cuenta == cuenta) {
+            printf("Información de la cuenta %d:\n", cuenta);
+            printf("Nombre: %s\n", usuarios[i].nombre);
+            printf("Saldo: %.2f\n", usuarios[i].saldo);
+            return;
+        }
+    }
+    printf("La cuenta ingresada no fue encontrada.\n");
+}
+
 bool existeCuenta(int num_cuenta, struct Usuario usuarios[MAX_RECORDS], int num_usuarios, int line_number)
 {
     for (int i = 0; i < num_usuarios; i++)
@@ -78,7 +173,7 @@ float validaciones(char linea[MAX_CHAR_PER_LINE], struct Usuario usuarios[MAX_RE
     if (!existeCuenta(cuenta1, usuarios, num_usuarios, line_number))
     {
 
-        return -999;
+        return -9999;
     }
     transacciones[num_transacciones].cuenta1 = cuenta1;
 
@@ -96,12 +191,12 @@ float validaciones(char linea[MAX_CHAR_PER_LINE], struct Usuario usuarios[MAX_RE
         if (cuenta2 != 0)
         {
             printf("Error en línea %d: En la operación (%d) el parámetro cuenta2 debe ser 0.\n", line_number, ope);
-            return -999;
+            return -99999;
         }
     }
     else if (ope == 3 && !existeCuenta(cuenta2, usuarios, num_usuarios, line_number))
     {
-        return -999;
+        return -9999;
     }
     transacciones[num_transacciones].cuenta2 = cuenta2;
 
@@ -117,14 +212,14 @@ float validaciones(char linea[MAX_CHAR_PER_LINE], struct Usuario usuarios[MAX_RE
     if (*endptr != '\0' && !isspace(*endptr))
     {
         printf("Error en línea %d: El monto para el usuario %s no es un número válido.\n", line_number, usuarios[num_usuarios].nombre);
-        return -999;
+        return -999999;
     }
 
     // Verificación de saldo negativo
     if (monto < 0)
     {
         printf("Error en línea %d: El monto para el usuario %s es negativo.\n", line_number, usuarios[num_usuarios].nombre);
-        return -999;
+        return -9999999;
     }
     transacciones[num_transacciones].monto = monto;
 
@@ -287,7 +382,7 @@ void *load_transactions(void *arguments)
         if (operacion == 1 || operacion == 2 || operacion == 3)
         {
             float monto = validaciones(aux_linea, usuarios, num_usuarios, transacciones, num_transacciones, line_number);
-            if (monto != -999)
+            if (monto >= -999 )
             {
                 if (operacion == 1)
                 {
@@ -353,6 +448,22 @@ void *load_transactions(void *arguments)
                         usuarios[pos_c2].saldo += monto;
                     }
                 }
+            }else{
+                
+                if(monto == -9999){
+                
+                    sprintf(errors + strlen(errors), "Error en línea %d: No existe cuenta.\n", line_number);
+                }else if(monto == -99999){
+                
+                    sprintf(errors + strlen(errors), "Error en línea %d: En la operación (%d) el parámetro cuenta2 debe ser 0.\n", line_number, operacion);
+                }else if(monto == -999999){
+                
+                    sprintf(errors + strlen(errors), "Error en línea %d: El monto no es un numero valido\n", line_number);
+                }else if(monto == -9999999){
+                
+                    sprintf(errors + strlen(errors), "Error en línea %d: El monto es negativo\n", line_number);
+                }
+                continue;
             }
             num_transacciones++;
         }
@@ -371,9 +482,18 @@ void *load_transactions(void *arguments)
 
 int main()
 {
+    char usuarios_filename[100]; // Variable para almacenar la ruta del archivo de usuarios
+    char transacciones_filename[100]; // Variable para almacenar la ruta del archivo de transacciones
+
+    printf("Ingrese la ruta del archivo de usuarios: ");
+    scanf("%s", usuarios_filename); // Leer la ruta del archivo de usuarios
+
+    printf("Ingrese la ruta del archivo de transacciones: ");
+    scanf("%s", transacciones_filename); // Leer la ruta del archivo de transacciones
+
     FILE *usuarios_file, *transacciones_file;
-    usuarios_file = fopen("prueba_usuarios.csv", "r");
-    transacciones_file = fopen("prueba_transacciones.csv", "r");
+    usuarios_file = fopen(usuarios_filename, "r"); // Abrir el archivo de usuarios
+    transacciones_file = fopen(transacciones_filename, "r"); // Abrir el archivo de transacciones
     if (usuarios_file == NULL || transacciones_file == NULL)
     {
         perror("Error al abrir el archivo");
@@ -494,6 +614,39 @@ int main()
 
     fclose(usuarios_file);
     fclose(transacciones_file);
+
+    //MENU
+    int opcion;
+    do {
+        printf("\nMenú de operaciones:\n");
+        printf("1. Depósito\n");
+        printf("2. Retiro\n");
+        printf("3. Transferencia\n");
+        printf("4. Consultar cuenta\n");
+        printf("5. Salir\n");
+        printf("Seleccione una opción: ");
+        scanf("%d", &opcion);
+
+        switch (opcion) {
+            case 1:
+                deposito(usuarios, total_users_loaded);
+                break;
+            case 2:
+                retiro(usuarios, total_users_loaded);
+                break;
+            case 3:
+                transferencia(usuarios, total_users_loaded);
+                break;
+            case 4:
+                consultar_cuenta(usuarios, total_users_loaded);
+                break;
+            case 5:
+                printf("Saliendo del programa...\n");
+                break;
+            default:
+                printf("Opción no válida. Por favor, seleccione una opción válida.\n");
+        }
+    } while (opcion != 5);
 
     return 0;
 }

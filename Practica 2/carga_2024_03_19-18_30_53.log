@@ -1,0 +1,26 @@
+Reporte de carga de usuarios generado el carga_2024_03_19-18_30_53.log
+
+Desglose de usuarios cargados por cada hilo:
+Hilo 1: 73 usuarios
+Hilo 2: 11 usuarios
+Hilo 3: 0 usuarios
+
+Total de usuarios cargados: 84
+Errores durante la carga de usuarios:
+Error en línea 2: El saldo para el usuario Jorey Pittet no es un número válido.
+Error en línea 4: El saldo para el usuario Nerita Yokel no es un número válido.
+Error en línea 3: No se pudo leer el saldo.
+Error en línea 7: No se pudo leer el saldo.
+Error en línea 14: El saldo para el usuario Elianora Wittering es negativo.
+Error en línea 20: El saldo para el usuario Tisha Frediani no es un número válido.
+Error en línea 42: El número de cuenta 9114 ya existe en el sistema.
+Error en línea 11: No se pudo leer el saldo.
+Error en línea 52: No se pudo leer el nombre.
+Error en línea 53: El saldo para el usuario Merilee Cow es negativo.
+Error en línea 57: No se pudo leer el nombre.
+Error en línea 63: No se pudo leer el nombre.
+Error en línea 64: No se pudo leer el saldo.
+Error en línea 67: El número de cuenta 9112 ya existe en el sistema.
+Error en línea 90: El saldo para el usuario Giusto Levison no es un número válido.
+Error en línea 101: El saldo para el usuario Alayne Oke es negativo.
+

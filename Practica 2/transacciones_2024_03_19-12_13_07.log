@@ -1,0 +1,29 @@
+Reporte de carga de transacciones generado el transacciones_2024_03_19-12_13_07.log
+
+Desglose de transacciones cargadas por cada hilo:
+Hilo 1: 20 transacciones
+Hilo 2: 164 transacciones
+Hilo 3: 0 transacciones
+Hilo 4: 0 transacciones
+
+Total de transacciones cargadas: 184
+Errores durante la carga de transacciones:
+Error en línea 6: Operación no válida.
+Error en línea 24: El monto es negativo
+Error en línea 32: No existe cuenta.
+Error en línea 49: Operación no válida.
+Error en línea 56: No se puede retirar esa cantidad ya que es mayor a su saldo.
+Error en línea 69: No existe cuenta.
+Error en línea 93: No se puede transferir esa cantidad ya que es mayor a saldo.
+Error en línea 97: El monto es negativo
+Error en línea 102: Operación no válida.
+Error en línea 114: No existe cuenta.
+Error en línea 125: El monto es negativo
+Error en línea 130: No existe cuenta.
+Error en línea 153: No se puede retirar esa cantidad ya que es mayor a su saldo.
+Error en línea 171: No existe cuenta.
+Error en línea 184: En la operación (2) el parámetro cuenta2 debe ser 0.
+Error en línea 200: Operación no válida.
+Error en línea 201: No se puede transferir esa cantidad ya que es mayor a saldo.
+Error en línea 193: El monto es negativo
+
